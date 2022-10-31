@@ -4,10 +4,7 @@ format: html
 editor: visual
 ---
 
-
-In this application exercise we will be studying loan interest rates.
-The dataset is one you've come across before in your reading -- the dataset about loans from the peer-to-peer lender, Lending Club, from the **openintro** packahe.
-We will use **tidyverse** and **tidymodels** for data exploration and modeling, respectively.
+In this application exercise we will be studying loan interest rates. The dataset is one you've come across before in your reading -- the dataset about loans from the peer-to-peer lender, Lending Club, from the **openintro** packahe. We will use **tidyverse** and **tidymodels** for data exploration and modeling, respectively.
 
 ```{r}
 #| label: load-packages
@@ -20,6 +17,8 @@ library(openintro)
 Before we use the data set, we'll make a few transformations to it.
 
 Warm up: What is this code doing?
+
+-   Its creating variables `credit_util`, `bankruptcy`, and `homeownership`, then renaming `credit_checks` and selecting some of the variables.
 
 ```{r}
 loans <- loans_full_schema %>%
@@ -38,18 +37,21 @@ Take a glimpse of the data below:
 
 ```{r}
 #| label: glimpse-loans
-
+glimpse(loans)
 ```
 
 # Interest rate vs. credit utilization ratio
-
 
 Write a model that models interest rate by credit utilization ratio. Name it `rate_util_fit`.
 
 ```{r}
 #| label: fit-rate-util
 
-rate_util_fit <-
+rate_util_fit <- linear_reg() |> 
+  set_engine("lm") |> 
+  fit(interest_rate ~ credit_util, data = loans)
+
+tidy(rate_util_fit)
 ```
 
 And here is the model visualized:
@@ -65,16 +67,20 @@ ggplot(loans, aes(x = credit_util, y = interest_rate)) +
 ```{r}
 #| label: predict-80
 
+credit_util_80 <- tibble(credit_util = 0.8)
 
+predict(rate_util_fit, new_data = credit_util_80)
 ```
 
-# Leverage vs Influence 
+# Leverage vs Influence
 
-What is leverage? What is influence? 
+What is leverage? What is influence?
 
+-   Leverage - How far away an observation is from the line (High, Low). "Potential for influence".
+
+-   Influence - How much a point changes the line of best fit
 
 Now, let's add data points to drive this idea home!
-
 
 ```{r}
 
@@ -90,15 +96,13 @@ new_loans1 <- rbind(loans, new_point_1)
 new_loans2 <- rbind(loans, new_point_2)
 ```
 
-
-Below, compare the model outputs. 
-
+Below, compare the model outputs.
 
 ```{r}
 
 linear_reg() |>
   set_engine("lm") |>
-  fit(interest_rate ~ credit_util, data = new_loans) |>
+  fit(interest_rate ~ credit_util, data = loans) |>
   tidy()
 
 linear_reg() |>
@@ -110,8 +114,6 @@ linear_reg() |>
   set_engine("lm") |>
   fit(interest_rate ~ credit_util, data = new_loans2) |>
   tidy()
-
-
 ```
 
 ```{r}
@@ -119,10 +121,6 @@ ggplot(loans, aes(x = credit_util, y = interest_rate)) +
   geom_point(alpha = 0.5) +
   geom_smooth(method = "lm")
 ```
-
-
-*Add Response*
-
 
 # Interest rate vs. homeownership
 
@@ -143,7 +141,7 @@ rate_util_home_fit <-
 
 -   **Your turn:** Interpret each coefficient in context of the problem.
 
-    -   Intercept: 
+    -   Intercept:
 
     -   Slopes:
 
@@ -164,22 +162,19 @@ rate_util_home_fit <- linear_reg() |>
 tidy(rate_util_home_fit)
 ```
 
-$$
+\$\$
 
-
-$$
+\$\$
 
 -   **Demo:** Write the estimated regression equation for loan applications from each of the homeownership groups separately.
-    -   Rent: $ $
-    -   Mortgage: $  $
-    -   Own: $  $
-
-- **Question:** How does the model predict the interest rate to vary as credit utilization varies for loan applicants with different homeownership status. Are the rates the same or different?
-
+    -   Rent: \$ \$
+    -   Mortgage: \$ \$
+    -   Own: \$ \$
+-   **Question:** How does the model predict the interest rate to vary as credit utilization varies for loan applicants with different homeownership status. Are the rates the same or different?
 
 ## Interaction effects model
 
-- **Demo:** Fit a model to predict interest rate from credit utilization and homeownership, **with** an interaction effect between the two predictors. Display the summary output and write out the estimated regression equation.
+-   **Demo:** Fit a model to predict interest rate from credit utilization and homeownership, **with** an interaction effect between the two predictors. Display the summary output and write out the estimated regression equation.
 
 ```{r}
 #| label: rate-util-home-fit
@@ -194,14 +189,11 @@ $$
     -   Rent: $\widehat{interest~rate} = 9.44 + 6.20 \times credit~util$
     -   Mortgage: $\widehat{interest~rate} = 10.83 + 4.56 \times credit~util$
     -   Own: $\widehat{interest~rate} = 10.137 + 5.14 \times credit~util$
-
-- **Question:** How does the model predict the interest rate to vary as credit utilization varies for loan applicants with different homeownership status. Are the rates the same or different?
-
+-   **Question:** How does the model predict the interest rate to vary as credit utilization varies for loan applicants with different homeownership status. Are the rates the same or different?
 
 ## Choosing a model
 
-Rule of thumb: **Occam's Razor** - Don't overcomplicate the situation!
-We prefer the *simplest* best model.
+Rule of thumb: **Occam's Razor** - Don't overcomplicate the situation! We prefer the *simplest* best model.
 
 ```{r}
 #| label: glance
@@ -211,22 +203,19 @@ glance(rate_util_home_int_fit)
 
 -   **Review:** What is R-squared? What is adjusted R-squared?
 
-R-squared is 
+R-squared is
 
-Adjusted R-squared is 
+Adjusted R-squared is
 
-- **Question:** Based on the $R^2s$ of these two models, which one do we prefer? Is this appropriate?
+-   **Question:** Based on the $R^2s$ of these two models, which one do we prefer? Is this appropriate?
 
-- **Question:** Based on the adjusted $R^2$s of these two models, which one do we prefer?
-
-
-
+-   **Question:** Based on the adjusted $R^2$s of these two models, which one do we prefer?
 
 Note: We can use the principles of adjusted R-squared to select models using forwards or backwards selection (Read 8.4.1)
 
 # Another model to consider
 
-- **Your turn:** Let's add one more model to the variable -- issue month. Should we add this variable to the interaction effects model from earlier?
+-   **Your turn:** Let's add one more model to the variable -- issue month. Should we add this variable to the interaction effects model from earlier?
 
 ```{r}
 linear_reg() |>
@@ -234,12 +223,11 @@ linear_reg() |>
   glance()
 ```
 
-
-# Optional 
+# Optional
 
 ## 2 Quantitative Explanatory Variables
 
-Remember the penguins? Let's finish the activity. 
+Remember the penguins? Let's finish the activity.
 
 Now, let's explore body mass, and it's relationship to bill length and flipper length.
 
@@ -251,7 +239,6 @@ library(palmerpenguins)
 library(plotly)
 library(widgetframe)
 ```
-
 
 Note: This code is beyond the scope of this course!
 
@@ -269,8 +256,6 @@ quanplot <- plot_ly(penguins,
                       )) |>
                     config(displayModeBar = FALSE)
                   frameWidget(quanplot)
-                      
-
 ```
 
 -- Fit the additive model below. Interpret the coefficient for flipper in context of the problem.
@@ -280,8 +265,6 @@ quanplot <- plot_ly(penguins,
 
 
 ```
-
-
 
 What if I want to fit an interaction model with these two quantitative variables?
 
