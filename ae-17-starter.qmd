@@ -261,10 +261,15 @@ quanplot <- plot_ly(penguins,
 -- Fit the additive model below. Interpret the coefficient for flipper in context of the problem.
 
 ```{r}
-
-
-
+linear_reg() |> 
+  set_engine("lm") |> 
+  fit(body_mass_g ~ bill_length_mm + flipper_length_mm, data = penguins) |> 
+  tidy()
 ```
+
+$$
+\widehat{body-mass} = [-5737 + 6.05*bill + 48.1*flipper]
+$$
 
 What if I want to fit an interaction model with these two quantitative variables?
 
