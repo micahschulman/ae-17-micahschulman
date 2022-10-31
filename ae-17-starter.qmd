@@ -271,6 +271,8 @@ $$
 \widehat{body-mass} = [-5737 + 6.05*bill + 48.1*flipper]
 $$
 
+Holding bill length constant, for a one mm increase in flipper length, we expect on average a 48.1 increase in body mass.
+
 What if I want to fit an interaction model with these two quantitative variables?
 
 It looks really similar to what we've done before! Try it out!
